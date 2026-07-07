@@ -5,6 +5,7 @@ import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 import model from "./model";
 import { searchKnowledgeBase } from "./tools/knowledge-search";
 import { queryOrderStatus } from "./tools/order-query";
+import { queryShipment } from "./tools/shipment-query";
 
 
 // 创建持久化 checkpointer
@@ -19,8 +20,9 @@ await checkpointer.setup();
 export const customerServiceAgent = createAgent({
   model,
   tools: [
-    searchKnowledgeBase,  // 添加知识库搜索工具
-    queryOrderStatus,  // 添加订单查询工具
+    searchKnowledgeBase,
+    queryOrderStatus,
+    queryShipment,
   ],  
   checkpointer,
   
@@ -29,7 +31,7 @@ export const customerServiceAgent = createAgent({
 可用工具：
 1. search_knowledge_base - 搜索产品知识库
 2. query_order_status - 查询订单状态（需要订单号）
-3. track_shipment - 跟踪物流信息（需要运单号）
+3. query_shipment - 查询物流信息（需要运单号）
 4. create_support_ticket - 创建客服工单
 5. transfer_to_human - 转接人工客服
 

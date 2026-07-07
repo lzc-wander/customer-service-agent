@@ -166,6 +166,44 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 
+// 物流查询接口
+app.get("/api/shipments/:trackingNo", async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { trackingNo } = req.params;
+
+    // 查询物流主表
+    const shipRes = await client.query(
+      `SELECT * FROM shipments WHERE tracking_no = $1`,
+      [trackingNo]
+    );
+
+    if (shipRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "未找到该物流单号" });
+    }
+
+    const shipment = shipRes.rows[0];
+
+    // 查询物流节点明细（按时间正序）
+    const trackRes = await client.query(
+      `SELECT * FROM shipment_tracking WHERE tracking_no = $1 ORDER BY created_at ASC`,
+      [trackingNo]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        ...shipment,
+        tracking: trackRes.rows,
+      },
+    });
+  } catch (error) {
+    console.error("物流查询失败:", error);
+    res.status(500).json({ success: false, error: "物流查询失败" });
+  } finally {
+    client.release();
+  }
+});
 
 // 启动服务器
 const PORT = process.env.PORT || 3000;
